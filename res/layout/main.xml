@@ -5,15 +5,21 @@
     android:layout_height="fill_parent"
     android:background="@drawable/background">
     
+    <TextView	android:id="@+id/pagetitle" 
+    			android:layout_width="fill_parent" 
+    			android:layout_height="wrap_content"
+    			android:background="#FF000000"
+    			android:padding="10px"
+    			android:layout_gravity="center_horizontal"
+    			android:text="Servers">
+	</TextView>
+    
 	<ListView 	android:id="@+id/android:list" 
-				android:layout_width="wrap_content"
+				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
 				android:background="#AA000000"
-				android:textFilterEnabled="true"
-				android:drawSelectorOnTop="true"
 				>
 	</ListView>
-		
 		
 <TextView android:id="@+id/android:empty" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No Servers Found!"></TextView>
 </LinearLayout>
