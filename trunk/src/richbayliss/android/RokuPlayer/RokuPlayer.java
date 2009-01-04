@@ -8,17 +8,34 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class RokuPlayer extends ListActivity {
 	
+	// The communications class
 	RokuRCP rcp = null;
-	String state = "servers";
-	String[] lst;
 	
+	// UI states and variables
+	public static final int SERVER_LIST = 0;
+	public static final int ALBUM_LIST = 1;
+	public static final int SONG_LIST = 2;
+	
+	int current_state = RokuPlayer.ALBUM_LIST;
+	String[] current_list;
+	String[] current_album_list;
+	int current_server_id;
+	
+	
+	// Run when the Activity is started
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
+        // Set the title bar look-and-feel
+        TextView titlebar = (TextView)this.findViewById(R.id.pagetitle); 
+        titlebar.setTextAppearance(this, android.R.style.TextAppearance_Large);
+        
+        // Connect to the Roku device
         rcp = new RokuRCP("192.168.1.66", 5555);
         
         if (!rcp.isConnected)
@@ -35,10 +52,51 @@ public class RokuPlayer extends ListActivity {
         			.show();
         }else{
 	        if (!rcp.ReadResponse().contains("roku: ready"))
-	        	System.exit(100);
+	        	finish();
 	        
-	        this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, rcp.GetServerList()));
+	        this.ShowServerList();
         }
+    }
+    
+    private void ShowServerList()
+    {
+    	TextView titlebar = (TextView)this.findViewById(R.id.pagetitle); 
+        titlebar.setText("Servers");
+        
+        this.current_state = RokuPlayer.SERVER_LIST;
+        this.current_list = rcp.GetServerList();        
+        this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, this.current_list));
+    }
+    private void ShowAlbumList(int ServerID)
+    {
+    	TextView titlebar = (TextView)this.findViewById(R.id.pagetitle); 
+        titlebar.setText("Albums");
+        
+        this.current_server_id = ServerID;
+        this.current_state = RokuPlayer.ALBUM_LIST;
+        rcp.SelectServer(ServerID);
+        this.current_list = rcp.GetAlbumList();
+        this.current_album_list = this.current_list; 
+        this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, this.current_list));
+    }
+    private void ShowExistingAlbumList()
+    {
+    	TextView titlebar = (TextView)this.findViewById(R.id.pagetitle); 
+        titlebar.setText("Albums");
+        
+        this.current_state = RokuPlayer.ALBUM_LIST;
+        
+        this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, this.current_album_list));
+    }
+    private void ShowSongList(String AlbumName)
+    {
+    	TextView titlebar = (TextView)this.findViewById(R.id.pagetitle); 
+        titlebar.setText(AlbumName);
+        
+        this.current_state = RokuPlayer.SONG_LIST;
+        rcp.SelectAlbum(AlbumName);
+        this.current_list = rcp.GetAlbumSongs();
+        this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, this.current_list));
     }
     
     @Override
@@ -49,33 +107,20 @@ public class RokuPlayer extends ListActivity {
      Object o = this.getListAdapter().getItem(position);
      String s = o.toString();
      
-     if (state == "servers")
-        {
-       	 rcp.SelectServer(position);
-       	 lst = rcp.GetAlbumList();
-       	 
-       	 state = "albums";
-        }else if (state == "albums")
-        {
-       	 rcp.SelectAlbum(s);
-       	 lst = rcp.GetAlbumSongs();
-       	 
-       	 state = "songs";
-        }else if (state == "songs")
-        {
-       	 rcp.PlayAlbum(position);    	 
-       	 state = "songs";
-       	 
-        }else{
-       	 lst = new String[1];
-       	 lst[0] = "Nothing to see here!";
-        }
-        
-        this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, lst));
+     switch (this.current_state)
+     {
+     	case RokuPlayer.SERVER_LIST:
+     		ShowAlbumList(position);
+     		break;
+     	case RokuPlayer.ALBUM_LIST:
+     		ShowSongList(s);
+     		break;
+     	case RokuPlayer.SONG_LIST:
+     		this.rcp.PlayAlbum(position);
+     		break;
+     }
     }
-    
-    
-    
+
     @Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
@@ -83,8 +128,7 @@ public class RokuPlayer extends ListActivity {
 		
 		if (rcp.isConnected)
 		{
-			state = "servers";
-			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, rcp.GetServerList()));
+			ShowServerList();
 		}
 	}
 
@@ -96,6 +140,20 @@ public class RokuPlayer extends ListActivity {
            return true;
         }else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
         	rcp.VolDown();
+        	return true;
+        }else if (keyCode == KeyEvent.KEYCODE_BACK) {
+        	switch (this.current_state)
+            {
+            	case RokuPlayer.SERVER_LIST:
+            		finish();
+            		break;
+            	case RokuPlayer.ALBUM_LIST:
+            		ShowServerList();
+            		break;
+            	case RokuPlayer.SONG_LIST:
+            		ShowExistingAlbumList();
+            		break;
+            }
         	return true;
         }else{
         	return false;
