@@ -3,16 +3,14 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/background"
-    android:paddingTop="10px"
-    android:paddingLeft="10px"
-    android:paddingRight="10px"
-    android:paddingBottom="10px">
+    android:background="@drawable/background">
     
 	<ListView 	android:id="@+id/android:list" 
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:background="#AA000000"
+				android:textFilterEnabled="true"
+				android:drawSelectorOnTop="true"
 				>
 	</ListView>
 		
