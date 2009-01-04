@@ -1,12 +1,8 @@
 package richbayliss.android.RokuPlayer;
 
 import richbayliss.android.RokuPlayer.Provider.RokuRCP;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
