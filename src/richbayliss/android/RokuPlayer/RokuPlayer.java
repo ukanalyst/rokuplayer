@@ -1,9 +1,10 @@
 package richbayliss.android.RokuPlayer;
 
-import richbayliss.android.RokuPlayer.Provider.RokuProvider;
 import richbayliss.android.RokuPlayer.Provider.RokuRCP;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,10 +25,24 @@ public class RokuPlayer extends ListActivity {
         
         rcp = new RokuRCP("192.168.1.66", 5555);
         
-        if (!rcp.ReadResponse().contains("roku: ready"))
-        	System.exit(100);
-        
-        this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, rcp.GetServerList()));
+        if (!rcp.isConnected)
+        {
+        	new android.app.AlertDialog.Builder(RokuPlayer.this)
+        			.setTitle("No Connection")
+        			.setMessage("Unable to find server!")
+        			.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		        		public void onClick(DialogInterface dialog, int whichButton)
+		        		{
+		        			finish();
+		        		}
+        			})
+        			.show();
+        }else{
+	        if (!rcp.ReadResponse().contains("roku: ready"))
+	        	System.exit(100);
+	        
+	        this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, rcp.GetServerList()));
+        }
     }
     
     @Override
@@ -70,13 +85,17 @@ public class RokuPlayer extends ListActivity {
 		// TODO Auto-generated method stub
 		super.onResume();
 		
-		state = "servers";
-		this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, rcp.GetServerList()));
+		if (rcp.isConnected)
+		{
+			state = "servers";
+			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, rcp.GetServerList()));
+		}
 	}
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        
+		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             rcp.VolUp();
            return true;
         }else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {

@@ -22,21 +22,25 @@ public class RokuRCP {
 	
 	int Vol = 20;
 	
+	public boolean isConnected = false;
+	
 	public RokuRCP(String ServerAddr, int ServerPort)
 	{
 		try {
-			this.sock = new Socket(InetAddress.getByName(ServerAddr),ServerPort);
+			
+			this.sock = new Socket();
+			this.sock.connect(new InetSocketAddress(ServerAddr,ServerPort), 3000);
 			this.in = new BufferedReader(new InputStreamReader(this.sock.getInputStream()));
 			this.out = new PrintWriter(this.sock.getOutputStream());
 			
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
+			this.isConnected = true;
+			
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+		
 	public String[] GetServerList()
 	{
 		// Write command to server
